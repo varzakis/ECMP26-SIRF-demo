@@ -1,6 +1,6 @@
 # ECMP26 SIRF Workshop
 
-Workshop material for the **ECMP26 SIRF/SIMIND workshop**.
+Workshop material for the **ECMP26 SIRF workshop**.
 
 The exercises use [SIRF](https://github.com/SyneRBI/SIRF) together with the [SIMIND Python Connector](https://github.com/samdporter/simind-python-connector) and [phantomgen](https://github.com/varzakis/phantomgen).
 
