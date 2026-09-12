@@ -1,0 +1,19 @@
+# External/local packages
+.packages/*
+!.packages/stir_simind_utils.py
+
+# Python generated files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code local settings
+.vscode/
+
+# OS-generated files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,11 @@
+{
+    "name": "ECMP26 Workshop",
+
+    "image": "ghcr.io/synerbi/sirf:latest",
+
+    "workspaceMount": "source=${localWorkspaceFolder},target=/home/jovyan/sirf-demo,type=bind",
+
+    "workspaceFolder": "/home/jovyan/sirf-demo",
+
+    "postCreateCommand": "echo \"export PS1='\\\\u@ECMP26:\\\\w\\\\$ '\" >> ~/.bashrc"
+}
