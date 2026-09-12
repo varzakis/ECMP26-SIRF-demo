@@ -208,9 +208,11 @@ ECMP26_SIRF_demo/
 │   ├── ...
 │   └── workshop scripts and data
 │
-├── SIRF-demo-1/
+├── SIRF-demo-2/
 │   ├── ...
 │   └── workshop scripts and data
+:
+:
 |
 ├── README.md
 └── .gitignore
