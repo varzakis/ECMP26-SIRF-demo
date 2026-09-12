@@ -208,16 +208,12 @@ ECMP26_SIRF_demo/
 │   ├── ...
 │   └── workshop scripts and data
 │
+├── SIRF-demo-1/
+│   ├── ...
+│   └── workshop scripts and data
+|
 ├── README.md
 └── .gitignore
-```
-
-The `.packages` directory is created locally and should **not be committed to this repository**. The packages are obtained from their respective upstream repositories.
-
-A suitable `.gitignore` entry is:
-
-```gitignore
-.packages/
 ```
 
 ## Updating the external packages
