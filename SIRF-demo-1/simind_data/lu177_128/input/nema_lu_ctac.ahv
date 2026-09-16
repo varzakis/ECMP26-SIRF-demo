@@ -1,5 +1,5 @@
 !INTERFILE  :=
-!name of data file := /home/jovyan/sirf-demo/SIRF-demo-1/simind_data/lu177/input/nema_lu_ctac.v
+!name of data file := /home/jovyan/sirf-demo/SIRF-demo-1/simind_data/lu177_128/input/nema_lu_ctac.v
 !total number of images := 128
 !data offset in bytes := 0
 !imagedata byte order := LITTLEENDIAN

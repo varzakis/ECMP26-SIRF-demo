@@ -19,12 +19,13 @@ ctac = sim_dir / "input" / "nema_lu_ctac.hv"
 acquisition_data = spect.AcquisitionData(str(tomo_cor))
 matrix_size = (128,) * 3
 voxel_size = (4.42,) * 3
-subiterations = 100
-subsets = 2
-save_interval = 10
+subiterations = 24
+subsets = 12
+save_interval = 24
 recon_dir = sim_dir / "recons" / "osem"
 recon_dir.mkdir(parents=True, exist_ok=True)
-name_prefix = "tc99m_sim_osem"
+name_prefix = "lu177_sim_osem"
+#name_prefix = "tc99m_sim_osem"
 attenuation_map = spect.ImageData(str(ctac))
 keep_views_in_cache = False
     
@@ -50,7 +51,7 @@ flipped_attenuation_map.fill(np.flip(attenuation_map.as_array(), axis=2))
 acq_model_matrix.set_attenuation_image(flipped_attenuation_map)
 
 # ---- PSF modelling (triggered only if both params provided) ----
-#acq_model_matrix.set_resolution_model(float(sigma_0), float(slope), full_3D=False)
+acq_model_matrix.set_resolution_model(float(sigma_0), float(slope), full_3D=False)
 
 # feed projections and initial estimate into the model
 am = spect.AcquisitionModelUsingMatrix(acq_model_matrix)
@@ -66,9 +67,9 @@ reconstructed_image = initial_image
 # setup reconstructor and reconstruct
 recon = spect.OSMAPOSLReconstructor()
 recon.set_num_subiterations(subiterations)
-recon.set_save_interval(save_interval)
-recon.enable_output()
-recon.set_output_filename_prefix(str(recon_dir / name_prefix))
+#recon.set_save_interval(save_interval)
+#recon.enable_output()
+#recon.set_output_filename_prefix(str(recon_dir / name_prefix))
 recon.set_objective_function(obj_fun)
 recon.set_num_subsets(subsets)
 

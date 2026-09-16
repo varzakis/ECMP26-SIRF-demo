@@ -1809,3 +1809,205 @@ def display_arr(
 
     fig.tight_layout()
     return fig, axes
+
+
+from scipy.interpolate import make_interp_spline
+
+
+def calculate_recovery_coefficients(
+    source,
+    recon_dict,
+    masks_dict,
+    subiterations,
+    sphere_numbers=range(1, 7),
+    calibration_subit="100",
+    verbose=False
+):
+    """
+    Calculate recovery coefficients for each sphere and reconstruction.
+
+    Parameters
+    ----------
+    source : np.ndarray
+        Reference activity distribution.
+
+    recon_dict : dict
+        Dictionary containing reconstructed images, indexed by subiteration.
+
+    masks_dict : dict
+        Dictionary containing sphere masks named 'sphere_1', 'sphere_2', etc.
+
+    subiterations : array-like
+        OSEM subiterations to evaluate.
+
+    sphere_numbers : iterable, optional
+        Sphere numbers to include.
+
+    calibration_subit : str, optional
+        Reconstruction used to calculate the image calibration factor.
+
+    verbose : bool, optional
+        Print calculated values.
+
+    Returns
+    -------
+    rc_data : np.ndarray
+        Recovery coefficients with shape
+        (number of subiterations, number of spheres).
+
+    icf : float
+        Image calibration factor.
+    """
+
+    # Image calibration factor
+    icf = (
+        np.sum(recon_dict[calibration_subit])
+        / np.sum(source)
+    )
+
+    if verbose:
+        print(f"Image calibration factor: {icf:.4f}\n")
+
+    rc_data = []
+
+    for subit in subiterations:
+
+        if verbose:
+            print(f"SUBITERATION {subit}")
+
+        rc_sub_data = []
+
+        for sp_n in sphere_numbers:
+
+            mask = masks_dict[f"sphere_{sp_n}"]
+
+            rc = (
+                np.sum(recon_dict[str(subit)] * mask)
+                / icf
+                / np.sum(source * mask)
+            )
+
+            rc_sub_data.append(rc)
+
+            if verbose:
+                print(f"Sphere {sp_n}: {rc:.4f}")
+
+        rc_data.append(rc_sub_data)
+
+        if verbose:
+            print()
+
+    return np.asarray(rc_data), icf
+
+
+def plot_recovery_coefficients(
+    subiterations,
+    rc_data,
+    diameters_mm,
+    title=None,
+    smooth=True
+):
+    """
+    Plot recovery coefficient as a function of OSEM subiterations.
+    """
+
+    subiterations = np.asarray(subiterations)
+    rc_data = np.asarray(rc_data)
+
+    if smooth:
+        subit_plot = np.linspace(
+            subiterations.min(),
+            subiterations.max(),
+            500
+        )
+
+        spline = make_interp_spline(
+            subiterations,
+            rc_data,
+            k=3
+        )
+
+        rc_plot = spline(subit_plot)
+
+    else:
+        subit_plot = subiterations
+        rc_plot = rc_data
+
+    plt.figure(figsize=(8, 6))
+
+    for i, diameter in enumerate(diameters_mm):
+
+        plt.plot(
+            subit_plot,
+            rc_plot[:, i],
+            label=f"{diameter} mm"
+        )
+
+        plt.scatter(
+            subiterations,
+            rc_data[:, i]
+        )
+
+    if title:
+        plt.title(title, fontsize=14)
+
+    plt.xlabel("Subiterations", fontsize=12)
+    plt.ylabel("Recovery coefficient", fontsize=12)
+
+    plt.xlim(0, subiterations.max())
+    plt.ylim(0, 1.0)
+
+    plt.xticks(
+        np.arange(0, subiterations.max() + 1, 10)
+    )
+    plt.yticks(
+        np.arange(0, 1.01, 0.1)
+    )
+
+    plt.grid(axis="y", alpha=0.7)
+
+    plt.legend(
+        title="Sphere diameter",
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.02),
+        ncol=3
+    )
+
+    plt.show()
+
+
+## MC SCATTER RECOSNTRUCTION
+
+def divide(a, b, eps=1e-8):
+    return (a + eps) / (b + eps)
+
+def osem_step(acq_model, acq_data, current_image, sensitivity_image, scatter):
+    fp = acq_model.forward(current_image) + scatter
+    bpr = acq_model.backward(divide(acq_data, fp))
+    return divide(current_image * bpr, sensitivity_image)
+
+def run_osem(acq_model, acq_data, initial_image, iterations, subsets, scatter=0):
+    current_image = initial_image.clone()
+    sensitivity_images = []
+    one_sino = acq_data.get_uniform_copy(1)
+
+    for i in range(iterations):
+        for s in range(subsets):
+            print("#############################")
+            print(f"Computing Iteration {i} and Subset {s}")
+            acq_model.subset_num = s
+
+            if len(sensitivity_images) < subsets:
+                sensitivity_images.append(
+                    acq_model.backward(one_sino)
+                )
+
+            current_image = osem_step(
+                acq_model,
+                acq_data,
+                current_image,
+                sensitivity_images[s],
+                scatter
+            )
+
+    return current_image
