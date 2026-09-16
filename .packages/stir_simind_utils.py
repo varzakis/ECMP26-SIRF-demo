@@ -322,8 +322,8 @@ def scatter_correction(
     SC1_hdr: str,
     SC2_hdr: Optional[str] = None,
     sigma: float = 2.0,
-    save_filepath: Optional[str] = None,
-) -> spect.AcquisitionData:
+    save_filepath: Optional[str | Path] = None,
+) -> tuple[spect.AcquisitionData, spect.AcquisitionData]:
     """
     Performs scatter correction with the Dual Energy Window (DEW) method or,
     if SC2_hdr is provided, the Triple Energy Window (TEW) method.
@@ -345,8 +345,11 @@ def scatter_correction(
 
     Returns
     -------
-    spect.AcquisitionData
-        Scatter-corrected acquisition data (clipped at 0).
+    acq_data_corr_clipped : spect.AcquisitionData
+        Scatter-corrected acquisition data with negative values clipped to zero.
+    acq_data_scatter : spect.AcquisitionData
+        Estimated scatter contribution in the photopeak window.
+
     """
 
     # ---- validate inputs ----
@@ -419,22 +422,45 @@ def scatter_correction(
     acq_data_corr_clipped = acq_data_PP.clone()
     acq_data_corr_clipped.fill(acq_data_corr_clipped_arr)
 
-    if save_filepath is not None:
-        if not isinstance(save_filepath, str):
-            raise TypeError(f"save_filepath must be a string or None. Got {type(save_filepath).__name__}.")
-        
-        if not save_filepath.endswith(".hs"):
-            save_filepath = save_filepath+".hs"
-        
-        acq_data_corr_clipped.write(save_filepath)
-        
-        image_duration = float(extract_header_info(PP_hdr,'!image duration (sec)[1]'))
-        add_header_info(save_filepath,'number of time frames',str(1),'!extent of rotation')
-        add_header_info(save_filepath,'!image duration (sec)[1]',str(image_duration),'!extent of rotation')
-        print('Image Duration =',image_duration, 'sec')
-        print('Scatter correction completed successfully!')
+    acq_data_scatter = acq_data_PP.clone()
+    acq_data_scatter.fill(acq_data_scatter_arr)
 
-    return acq_data_corr_clipped
+    if save_filepath is not None:
+        if not isinstance(save_filepath, (str, Path)):
+            raise TypeError(
+                f"save_filepath must be a str, Path, or None. "
+                f"Got {type(save_filepath).__name__}."
+            )
+
+        save_filepath = Path(save_filepath)
+
+        if save_filepath.suffix != ".hs":
+            save_filepath = save_filepath.with_suffix(".hs")
+
+        acq_data_corr_clipped.write(str(save_filepath))
+
+        image_duration = float(
+            extract_header_info(PP_hdr, "!image duration (sec)[1]")
+        )
+
+        add_header_info(
+            str(save_filepath),
+            "number of time frames",
+            "1",
+            "!extent of rotation"
+        )
+
+        add_header_info(
+            str(save_filepath),
+            "!image duration (sec)[1]",
+            str(image_duration),
+            "!extent of rotation"
+        )
+
+        print(f"Image Duration = {image_duration} sec")
+        print("Scatter correction completed successfully!")
+
+    return acq_data_corr_clipped, acq_data_scatter
 
 
 def dicom_extract_radial_position(
