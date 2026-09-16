@@ -1,7 +1,7 @@
 !INTERFILE  :=
 !imaging modality := NM
 !version of keys := STIR6.0
-name of data file := lu177_sim_osem_20.v
+name of data file := lu177_sim_osem_rm_20.v
 !GENERAL DATA :=
 !GENERAL IMAGE DATA :=
 !type of data := Tomographic

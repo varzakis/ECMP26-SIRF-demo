@@ -9,28 +9,44 @@ from pathlib import Path
 
 demo_path = Path("/home/jovyan/sirf-demo/SIRF-demo-1")
 
-sim_dir = demo_path / "simind_data" / "lu177_128"
-#sim_dir = demo_path / "simind_data" / "tc99m_128"
-tomo_cor = sim_dir / "tomo" / "lu177_simulation_tew.hs"
-#tomo_cor = sim_dir / "tomo" / "tc99m_simulation_dew.hs"
-ctac = sim_dir / "input" / "nema_lu_ctac.hv"
-#ctac = sim_dir / "input" / "nema_tc_ctac.hv"
+nuclide = "tc99m"
+#nuclide = "lu177"
+recon_type = "osem"
+#recon_type = "osem_rm"
+
+config_dict = {
+    "tc99m": {
+        "simind_dir": "tc99m_128",
+        "tomo_name": "tc99m_simulation_dew.hs",
+        "ctac_name": "nema_tc_ctac.hv",
+    },
+    "lu177": {
+        "simind_dir": "lu177_128",
+        "tomo_name": "lu177_simulation_tew.hs",
+        "ctac_name": "nema_lu_ctac.hv",
+    }
+
+}
+
+sigma_0 = 2.35598 #mm
+slope = 0.01771
+
+sim_dir = demo_path / "simind_data" / config_dict[nuclide]["simind_dir"]
+tomo_cor = sim_dir / "tomo" / config_dict[nuclide]["tomo_name"]
+ctac = sim_dir / "input" / config_dict[nuclide]["ctac_name"]
+recon_dir = sim_dir / "recons" / recon_type
+recon_dir.mkdir(parents=True, exist_ok=True)
+name_prefix = f"{nuclide}_sim_{recon_type}"
 
 acquisition_data = spect.AcquisitionData(str(tomo_cor))
 matrix_size = (128,) * 3
 voxel_size = (4.42,) * 3
-subiterations = 24
-subsets = 12
-save_interval = 24
-recon_dir = sim_dir / "recons" / "osem"
-recon_dir.mkdir(parents=True, exist_ok=True)
-name_prefix = "lu177_sim_osem"
-#name_prefix = "tc99m_sim_osem"
+subiterations = 100
+subsets = 2
+save_interval = 10
+
 attenuation_map = spect.ImageData(str(ctac))
-keep_views_in_cache = False
-    
-sigma_0 = 2.35598 #mm
-slope = 0.01771
+keep_views_in_cache = True
 
 # create a template for the reconstructed image
 initial_image = spect.ImageData(acquisition_data)
@@ -67,9 +83,9 @@ reconstructed_image = initial_image
 # setup reconstructor and reconstruct
 recon = spect.OSMAPOSLReconstructor()
 recon.set_num_subiterations(subiterations)
-#recon.set_save_interval(save_interval)
-#recon.enable_output()
-#recon.set_output_filename_prefix(str(recon_dir / name_prefix))
+recon.set_save_interval(save_interval)
+recon.enable_output()
+recon.set_output_filename_prefix(str(recon_dir / name_prefix))
 recon.set_objective_function(obj_fun)
 recon.set_num_subsets(subsets)
 
