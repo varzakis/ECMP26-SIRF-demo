@@ -353,12 +353,24 @@ def scatter_correction(
     """
 
     # ---- validate inputs ----
-    if not isinstance(PP_hdr, str):
-        raise TypeError(f"PP_hdr must be a string (file path to header). Got {type(PP_hdr).__name__}.")
-    if not isinstance(SC1_hdr, str):
-        raise TypeError(f"SC1_hdr must be a string (file path to header). Got {type(SC1_hdr).__name__}.")
-    if SC2_hdr is not None and not isinstance(SC2_hdr, str):
-        raise TypeError(f"SC2_hdr must be a string (file path to header). Got {type(SC2_hdr).__name__}.")
+    if not isinstance(PP_hdr, (str, Path)):
+        raise TypeError(
+            f"PP_hdr must be a str, Path, or None. "
+            f"Got {type(PP_hdr).__name__}."
+        )
+        PP_hdr = str(PP_hdr)
+    if not isinstance(SC1_hdr, (str, Path)):
+        raise TypeError(
+                f"SC1_hdr must be a str, Path, or None. "
+                f"Got {type(SC1_hdr).__name__}."
+            )
+        SC1_hdr = str(SC1_hdr)
+    if SC2_hdr is not None and not isinstance(SC2_hdr, (str, Path)):
+        raise TypeError(
+                f"SC2_hdr must be a str, Path, or None. "
+                f"Got {type(SC2_hdr).__name__}."
+            )
+        SC2_hdr = str(SC2_hdr)    
     if sigma is None or not np.isfinite(float(sigma)) or float(sigma) < 0:
         raise ValueError(f"sigma must be a finite non-negative float. Got {sigma}.")
 
