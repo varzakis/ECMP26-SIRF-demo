@@ -1,5 +1,5 @@
 !INTERFILE  :=
-!name of data file := /home/jovyan/sirf-demo/SIRF-demo-1/simind_data/lu177/recons/osem/lu177_sim_osem_10.v
+!name of data file := /home/jovyan/sirf-demo/SIRF-demo-1/simind_data/lu177_128/recons/osem/lu177_sim_osem_10.v
 !total number of images := 128
 !data offset in bytes := 0
 !imagedata byte order := LITTLEENDIAN

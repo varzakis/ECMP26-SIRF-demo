@@ -23,8 +23,8 @@
 ;patient orientation := head_in
 ;decay corrected := Y
 !type of data := tomographic
-study date := 2026:09:11
-study time := 15:12:04
+study date := 2026:09:22
+study time := 15:49:05
 imagedata byte order := LITTLEENDIAN
 energy window lower level[1] := 126.45
 energy window upper level[1] := 154.55
@@ -50,8 +50,8 @@ scaling factor (mm/pixel) [2] := 4.420000
 ;!time per projection (sec) := 1.000000
 number of time frames := 1
 image duration (sec) [1] := 120.000000
-maximum pixel count := 206.309448
-;# total counts := 51249.007025
+maximum pixel count := 103.170616
+;# total counts := 25628.446429
 ;# Center of Rotation := 65.000000
 
 !SPECT STUDY (acquired data) :=
@@ -65,7 +65,7 @@ start angle := 180.0
 
 ;# SIMIND-SPECIFIC PARAMETERS :=
 ;# Intrinsic FWHM for the camera := 5.500000
-;# Total activity (MBq) in the slices := 3249.500000
+;# Total activity (MBq) in the slices := 1625.000000
 ;# Collimator := ge-megp
 ;# Collimator hole diameter := 2.500000
 ;# Collimator hole septa := 0.300000

@@ -9,7 +9,7 @@
  Cover.....: al        ScoreRout.: scattwin  DensityImg: tc99m_simulation_d
 ------------------------------------------------------------------------------
  PhotonEnergy.......: 140          tc99m     PhotonsPerProj....: 92890          
- EnergyResolution...: 12           Spectra   Activity..........: 3249.5         
+ EnergyResolution...: 12           Spectra   Activity..........: 1625           
  MaxScatterOrder....: 3            ge-megp   DetectorLenght....: 20             
  DetectorWidth......: 27           SPECT     DetectorHeight....: 0.9525         
  UpperEneWindowTresh: 210          x-rays    Distance to det...: 17.022         
@@ -28,7 +28,7 @@
  CameraOffset Y.....: 0                      BackscatterThickn.: 0              
  MatrixSize I.......: 128                    IntrinsicResolut..: 0.55           
  MatrixSize J.......: 128                    AcceptanceAngle...: 4.02754        
- Emission type......: 2                      Initial Weight....: 30967.72604    
+ Emission type......: 2                      Initial Weight....: 15486.24552    
  NN ScalingFactor...: 0.1                    Energy Channels...: 512            
                                                                               
  SPECT DATA
@@ -66,9 +66,9 @@
    3       1    126.5 - 154.6   1.000
   
   Win    Total    Scatter   Primary  S/P-Ratio S/T Ratio  Cps/MBq
-   1   0.508E+07 0.472E+07 0.358E+06 0.132E+02 0.930E+00 0.130E+02
-   2   0.162E+08 0.625E+07 0.993E+07 0.629E+00 0.386E+00 0.415E+02
-   3   0.162E+08 0.625E+07 0.993E+07 0.629E+00 0.386E+00 0.415E+02
+   1   0.254E+07 0.236E+07 0.179E+06 0.132E+02 0.930E+00 0.130E+02
+   2   0.809E+07 0.312E+07 0.497E+07 0.629E+00 0.386E+00 0.415E+02
+   3   0.809E+07 0.312E+07 0.497E+07 0.629E+00 0.386E+00 0.415E+02
   
   Win  Geo(Air)  Pen(Air)  Sca(Air)  Geo(Tot)  Pen(Tot)  Sca(Tot)
    1   100.00%     0.00%     0.00%   100.00%     0.00%     0.00%
@@ -81,10 +81,10 @@
    3   81.3% 16.5%  2.2%
                                                                               
  INTERACTIONS IN THE CRYSTAL
- MaxValue spectrum..: 0.4194E+06     
- MaxValue projection: 1151.          
- CountRate spectrum.: 0.3292E+06     
- CountRate E-Window.: 0.3090E+06     
+ MaxValue spectrum..: 0.2097E+06     
+ MaxValue projection: 575.6          
+ CountRate spectrum.: 0.1646E+06     
+ CountRate E-Window.: 0.1545E+06     
                                                                               
  SCATTER IN ENERGY WINDOW
  Scatter/Primary....: 2.44407        
@@ -99,9 +99,9 @@
  Sensitivity Cps/MBq: 95.0988        
  Sensitivity Cpm/uCi: 211.1194       
                                                                               
- Simulation started.: 2026:09:11 15:03:11
- Simulation stopped.: 2026:09:11 15:12:04
- Elapsed time.......: 0 h, 8 m and 53 s
+ Simulation started.: 2026:09:22 15:40:11
+ Simulation stopped.: 2026:09:22 15:49:05
+ Elapsed time.......: 0 h, 8 m and 54 s
  DetectorHits.......: 246997         
  DetectorHits/CPUsec: 463            
                                                                               

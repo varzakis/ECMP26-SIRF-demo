@@ -8,8 +8,8 @@
  Collimator: pb_sb2    SourceRout: smap      SourceImg.: lu177_simulation_s
  Cover.....: al        ScoreRout.: scattwin  DensityImg: lu177_simulation_d
 ------------------------------------------------------------------------------
- PhotonEnergy.......: 208          lu177     PhotonsPerProj....: 92890          
- EnergyResolution...: 12           Spectra   Activity..........: 11110          
+ PhotonEnergy.......: 208          lu177     PhotonsPerProj....: 92897          
+ EnergyResolution...: 12           Spectra   Activity..........: 2584.6         
  MaxScatterOrder....: 3            ge-megp   DetectorLenght....: 20             
  DetectorWidth......: 27           SPECT     DetectorHeight....: 0.9525         
  UpperEneWindowTresh: 312          x-rays    Distance to det...: 17.022         
@@ -28,7 +28,7 @@
  CameraOffset Y.....: 0                      BackscatterThickn.: 0              
  MatrixSize I.......: 128                    IntrinsicResolut..: 0.55           
  MatrixSize J.......: 128                    AcceptanceAngle...: 4.02754        
- Emission type......: 2                      Initial Weight....: 27078.06847    
+ Emission type......: 2                      Initial Weight....: 6298.89308     
  NN ScalingFactor...: 0.1                    Energy Channels...: 512            
                                                                               
  SPECT DATA
@@ -67,10 +67,10 @@
    4       1    229.4 - 258.6   1.000
   
   Win    Total    Scatter   Primary  S/P-Ratio S/T Ratio  Cps/MBq
-   1   0.451E+07 0.151E+07 0.301E+07 0.500E+00 0.333E+00 0.339E+01
-   2   0.209E+07 0.201E+07 0.804E+05 0.250E+02 0.962E+00 0.157E+01
-   3   0.948E+05 0.313E+05 0.636E+05 0.492E+00 0.330E+00 0.711E-01
-   4   0.948E+05 0.313E+05 0.636E+05 0.492E+00 0.330E+00 0.711E-01
+   1   0.105E+07 0.352E+06 0.703E+06 0.500E+00 0.333E+00 0.340E+01
+   2   0.489E+06 0.470E+06 0.187E+05 0.252E+02 0.962E+00 0.158E+01
+   3   0.220E+05 0.725E+04 0.148E+05 0.491E+00 0.329E+00 0.709E-01
+   4   0.220E+05 0.725E+04 0.148E+05 0.491E+00 0.329E+00 0.709E-01
   
   Win  Geo(Air)  Pen(Air)  Sca(Air)  Geo(Tot)  Pen(Tot)  Sca(Tot)
    1   100.00%     0.00%     0.00%   100.00%     0.00%     0.00%
@@ -79,34 +79,34 @@
    4   100.00%     0.00%     0.00%   100.00%     0.00%     0.00%
   
   Win   SC 1  SC 2  SC 3
-   1   85.1% 13.4%  1.5%
-   2   58.6% 33.4%  8.1%
-   3   76.2% 19.7%  4.1%
-   4   76.2% 19.7%  4.1%
+   1   85.2% 13.4%  1.4%
+   2   58.6% 33.3%  8.1%
+   3   75.4% 20.5%  4.1%
+   4   75.4% 20.5%  4.1%
                                                                               
  INTERACTIONS IN THE CRYSTAL
- MaxValue spectrum..: 0.3259E+06     
- MaxValue projection: 561.6          
- CountRate spectrum.: 0.2361E+06     
- CountRate E-Window.: 0.1277E+06     
+ MaxValue spectrum..: 0.7552E+05     
+ MaxValue projection: 129.3          
+ CountRate spectrum.: 0.5504E+05     
+ CountRate E-Window.: 0.2978E+05     
                                                                               
  SCATTER IN ENERGY WINDOW
- Scatter/Primary....: 1.85064        
- Scatter/Total......: 0.6492         
- Scatter order 1....: 51.38 %        
- Scatter order 2....: 32.92 %        
- Scatter order 3....: 15.7  %        
+ Scatter/Primary....: 1.85143        
+ Scatter/Total......: 0.6493         
+ Scatter order 1....: 51.41 %        
+ Scatter order 2....: 32.95 %        
+ Scatter order 3....: 15.64 %        
                                                                               
  CALCULATED DETECTOR PARAMETERS
- Efficiency E-window: 0.4677         
- Efficiency spectrum: 0.8649         
- Sensitivity Cps/MBq: 11.49          
- Sensitivity Cpm/uCi: 25.5077        
+ Efficiency E-window: 0.4682         
+ Efficiency spectrum: 0.8653         
+ Sensitivity Cps/MBq: 11.5227        
+ Sensitivity Cpm/uCi: 25.5805        
                                                                               
- Simulation started.: 2026:09:11 15:12:05
- Simulation stopped.: 2026:09:11 15:20:59
+ Simulation started.: 2026:09:22 15:59:59
+ Simulation stopped.: 2026:09:22 16:08:53
  Elapsed time.......: 0 h, 8 m and 54 s
- DetectorHits.......: 248415         
+ DetectorHits.......: 248782         
  DetectorHits/CPUsec: 466            
                                                                               
  OTHER INFORMATION

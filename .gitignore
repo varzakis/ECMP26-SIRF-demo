@@ -1,8 +1,6 @@
 # External/local packages
 .packages/*
 !.packages/stir_simind_utils.py
-!.packages/mc_scatter_correction.py
-!.packages/osem_reconstruction.py
 
 # Python generated files
 __pycache__/
@@ -20,4 +18,4 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-.SIRF-demo-2/*
+SIRF-demo-2/*

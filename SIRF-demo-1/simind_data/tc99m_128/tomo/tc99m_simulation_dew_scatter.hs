@@ -1,0 +1,27 @@
+!INTERFILE  :=
+!imaging modality := NM
+name of data file := tc99m_simulation_dew_scatter.s
+originating system := simind
+!version of keys := 3.3
+!GENERAL DATA :=
+!GENERAL IMAGE DATA :=
+!type of data := Tomographic
+imagedata byte order := LITTLEENDIAN
+number of radionuclides := 1
+!SPECT STUDY (General) :=
+!number format := float
+!number of bytes per pixel := 4
+!number of projections := 120
+!extent of rotation := 360
+process status := acquired
+!SPECT STUDY (acquired data):=
+!direction of rotation := CW
+start angle := 180
+orbit := Non-circular
+Radii := {125, 126, 128, 128, 129, 129, 129, 130, 130, 131, 132, 132, 133, 134, 135, 135, 137, 139, 140, 142, 143, 144, 146, 147, 149, 151, 153, 154, 155, 156, 156, 158, 161, 162, 164, 165, 165, 166, 166, 166, 166, 166, 165, 164, 162, 160, 159, 157, 156, 154, 152, 149, 146, 143, 140, 136, 133, 129, 125, 121, 116, 121, 126, 130, 134, 138, 141, 145, 148, 151, 153, 157, 159, 161, 162, 163, 165, 167, 169, 170, 170, 170, 170, 170, 169, 169, 168, 166, 165, 163, 160, 160, 159, 158, 157, 155, 153, 152, 150, 148, 147, 145, 144, 142, 140, 138, 138, 137, 136, 135, 134, 133, 132, 131, 130, 130, 130, 129, 128, 127}
+
+!matrix size [1] := 128
+!scaling factor (mm/pixel) [1] := 4.42
+!matrix size [2] := 128
+!scaling factor (mm/pixel) [2] := 4.42
+!END OF INTERFILE :=

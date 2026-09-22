@@ -449,11 +449,19 @@ def scatter_correction(
         if save_filepath.suffix != ".hs":
             save_filepath = save_filepath.with_suffix(".hs")
 
-        acq_data_corr_clipped.write(str(save_filepath))
-
-        image_duration = float(
-            extract_header_info(PP_hdr, "!image duration (sec)[1]")
+        save_filepath_scatter = save_filepath.with_name(
+            f"{save_filepath.stem}_scatter{save_filepath.suffix}"
         )
+
+        acq_data_corr_clipped.write(str(save_filepath))
+        acq_data_scatter.write(str(save_filepath_scatter))
+
+        image_duration = extract_header_info(PP_hdr, "!image duration (sec)[1]")
+
+        if image_duration == "no_value":
+            image_duration = extract_header_info(PP_hdr, "image duration (sec) [1]")
+
+        image_duration = float(image_duration)
 
         add_header_info(
             str(save_filepath),
@@ -469,7 +477,7 @@ def scatter_correction(
             "!extent of rotation"
         )
 
-        print(f"Image Duration = {image_duration} sec")
+        #print(f"Image Duration = {image_duration} sec")
         print("Scatter correction completed successfully!")
 
     return acq_data_corr_clipped, acq_data_scatter
@@ -1857,17 +1865,18 @@ def calculate_recovery_coefficients(
     recon_dict,
     masks_dict,
     subiterations,
+    icf,
     sphere_numbers=range(1, 7),
-    calibration_subit="100",
     verbose=False
 ):
     """
-    Calculate recovery coefficients for each sphere and reconstruction.
+    Calculate recovery coefficients for each sphere and reconstruction
+    using a predefined image calibration factor.
 
     Parameters
     ----------
     source : np.ndarray
-        Reference activity distribution.
+        Reference activity distribution in MBq/voxel.
 
     recon_dict : dict
         Dictionary containing reconstructed images, indexed by subiteration.
@@ -1878,30 +1887,22 @@ def calculate_recovery_coefficients(
     subiterations : array-like
         OSEM subiterations to evaluate.
 
-    sphere_numbers : iterable, optional
-        Sphere numbers to include.
+    icf : float
+        Image calibration factor used to convert reconstructed image values
+        to activity.
 
-    calibration_subit : str, optional
-        Reconstruction used to calculate the image calibration factor.
+    sphere_numbers : iterable, optional
+        Sphere numbers to include. Default is spheres 1 to 6.
 
     verbose : bool, optional
-        Print calculated values.
+        Print calculated recovery coefficients.
 
     Returns
     -------
     rc_data : np.ndarray
         Recovery coefficients with shape
         (number of subiterations, number of spheres).
-
-    icf : float
-        Image calibration factor.
     """
-
-    # Image calibration factor
-    icf = (
-        np.sum(recon_dict[calibration_subit])
-        / np.sum(source)
-    )
 
     if verbose:
         print(f"Image calibration factor: {icf:.4f}\n")
@@ -1919,11 +1920,14 @@ def calculate_recovery_coefficients(
 
             mask = masks_dict[f"sphere_{sp_n}"]
 
-            rc = (
+            reconstructed_activity = (
                 np.sum(recon_dict[str(subit)] * mask)
                 / icf
-                / np.sum(source * mask)
             )
+
+            true_activity = np.sum(source * mask)
+
+            rc = reconstructed_activity / true_activity
 
             rc_sub_data.append(rc)
 
@@ -1935,7 +1939,7 @@ def calculate_recovery_coefficients(
         if verbose:
             print()
 
-    return np.asarray(rc_data), icf
+    return np.asarray(rc_data)
 
 
 def plot_recovery_coefficients(
@@ -1943,10 +1947,33 @@ def plot_recovery_coefficients(
     rc_data,
     diameters_mm,
     title=None,
-    smooth=True
+    smooth=True,
+    ylim=(0, 1.0)
 ):
     """
     Plot recovery coefficient as a function of OSEM subiterations.
+
+    Parameters
+    ----------
+    subiterations : array-like
+        OSEM subiterations.
+
+    rc_data : np.ndarray
+        Recovery coefficients with shape
+        (number of subiterations, number of spheres).
+
+    diameters_mm : array-like
+        Sphere diameters in mm.
+
+    title : str, optional
+        Plot title.
+
+    smooth : bool, optional
+        Apply spline interpolation to the RC curves.
+
+    ylim : tuple of float, optional
+        Y-axis limits as (ymin, ymax).
+        Default is (0, 1.0).
     """
 
     subiterations = np.asarray(subiterations)
@@ -1993,13 +2020,19 @@ def plot_recovery_coefficients(
     plt.ylabel("Recovery coefficient", fontsize=12)
 
     plt.xlim(0, subiterations.max())
-    plt.ylim(0, 1.0)
+    plt.ylim(*ylim)
 
     plt.xticks(
         np.arange(0, subiterations.max() + 1, 10)
     )
+
+    # Y-ticks at intervals of 0.1
     plt.yticks(
-        np.arange(0, 1.01, 0.1)
+        np.arange(
+            ylim[0],
+            ylim[1] + 0.01,
+            0.1
+        )
     )
 
     plt.grid(axis="y", alpha=0.7)
@@ -2049,3 +2082,380 @@ def run_osem(acq_model, acq_data, initial_image, iterations, subsets, scatter=0)
             )
 
     return current_image
+
+
+def create_cylindrical_phantom(
+    matrix_size=(128, 128, 128),
+    voxel_size_mm=(4.8, 4.8, 4.8),
+    radius_mm=100.0,
+    length_mm=200.0,
+    activity_concentration_MBq_ml=0.1,
+    fill_attenuation_coefficient_cm=0.12,
+    perspex_attenuation_coefficient_cm=0.11,
+    perspex_thickness_mm=5.0,
+    mask_margin_mm=20.0,
+    supersampling=1,
+):
+    """
+    Create a uniform cylindrical activity phantom surrounded by a
+    Perspex (PMMA) wall.
+
+    The cylinder is centred in the image and aligned with the z-axis.
+
+    The specified radius and length refer to the INTERNAL filling
+    dimensions. The Perspex wall is added radially and at both axial
+    ends.
+
+    Supersampling improves the representation of curved and axial
+    boundaries. Activity is summed during downsampling to preserve
+    total activity, while attenuation coefficients are averaged.
+
+    Parameters
+    ----------
+    matrix_size : tuple of int
+        Output matrix dimensions as (z, y, x).
+
+    voxel_size_mm : tuple of float
+        Output voxel dimensions in mm as (dz, dy, dx).
+
+    radius_mm : float
+        Internal radius of the filling volume in mm.
+
+    length_mm : float
+        Internal axial length of the filling volume in mm.
+
+    activity_concentration_MBq_ml : float
+        Activity concentration of the filling material in MBq/ml.
+        The returned activity map contains MBq/voxel.
+
+    fill_attenuation_coefficient_cm : float
+        Linear attenuation coefficient of the filling material in cm^-1.
+
+    perspex_attenuation_coefficient_cm : float
+        Linear attenuation coefficient of Perspex/PMMA in cm^-1.
+
+    perspex_thickness_mm : float
+        Thickness of the Perspex wall in mm. Applied radially and
+        at both axial ends.
+
+    mask_margin_mm : float
+        Additional margin around the outside of the Perspex phantom
+        used to construct the analysis mask.
+
+    supersampling : int
+        Supersampling factor in each dimension. A value of 1 disables
+        supersampling.
+
+    Returns
+    -------
+    activity_map : np.ndarray
+        3D float32 array containing activity in MBq/voxel.
+
+    attenuation_map : np.ndarray
+        3D float32 array containing linear attenuation coefficients
+        in cm^-1.
+
+    mask : np.ndarray
+        3D boolean analysis mask covering the entire phantom plus the
+        specified margin.
+    """
+
+    # ------------------------------------------------------------
+    # Input validation
+    # ------------------------------------------------------------
+
+    matrix_size = tuple(int(v) for v in matrix_size)
+    voxel_size_mm = tuple(float(v) for v in voxel_size_mm)
+
+    if len(matrix_size) != 3:
+        raise ValueError(
+            "matrix_size must be a 3D tuple (z, y, x)."
+        )
+
+    if len(voxel_size_mm) != 3:
+        raise ValueError(
+            "voxel_size_mm must be a 3D tuple (dz, dy, dx)."
+        )
+
+    if not isinstance(supersampling, int) or supersampling < 1:
+        raise ValueError(
+            "supersampling must be a positive integer."
+        )
+
+    nz, ny, nx = matrix_size
+    dz, dy, dx = voxel_size_mm
+
+    ss = supersampling
+
+    # ------------------------------------------------------------
+    # Supersampled geometry
+    # ------------------------------------------------------------
+
+    ss_matrix_size = (
+        nz * ss,
+        ny * ss,
+        nx * ss,
+    )
+
+    ss_voxel_size_mm = (
+        dz / ss,
+        dy / ss,
+        dx / ss,
+    )
+
+    ss_nz, ss_ny, ss_nx = ss_matrix_size
+    ss_dz, ss_dy, ss_dx = ss_voxel_size_mm
+
+    ss_voxel_volume_ml = (
+        ss_dz * ss_dy * ss_dx / 1000.0
+    )
+
+    # Coordinates at supersampled resolution
+    z = (
+        np.arange(ss_nz) - (ss_nz - 1) / 2
+    ) * ss_dz
+
+    y = (
+        np.arange(ss_ny) - (ss_ny - 1) / 2
+    ) * ss_dy
+
+    x = (
+        np.arange(ss_nx) - (ss_nx - 1) / 2
+    ) * ss_dx
+
+    Z, Y, X = np.meshgrid(
+        z, y, x,
+        indexing="ij",
+    )
+
+    radial_distance = np.sqrt(X**2 + Y**2)
+
+    # ------------------------------------------------------------
+    # Internal filling volume
+    # ------------------------------------------------------------
+
+    fill = (
+        (radial_distance <= radius_mm)
+        & (np.abs(Z) <= length_mm / 2)
+    )
+
+    # ------------------------------------------------------------
+    # Outer Perspex geometry
+    # ------------------------------------------------------------
+
+    outer_radius_mm = (
+        radius_mm + perspex_thickness_mm
+    )
+
+    outer_half_length_mm = (
+        length_mm / 2 + perspex_thickness_mm
+    )
+
+    outer_phantom = (
+        (radial_distance <= outer_radius_mm)
+        & (np.abs(Z) <= outer_half_length_mm)
+    )
+
+    # Perspex = outer cylinder minus internal filling volume
+    perspex = outer_phantom & ~fill
+
+    # ------------------------------------------------------------
+    # Activity map [MBq/subvoxel]
+    #
+    # Activity exists only in the filling material.
+    # ------------------------------------------------------------
+
+    activity_ss = np.zeros(
+        ss_matrix_size,
+        dtype=np.float32,
+    )
+
+    activity_per_subvoxel_MBq = (
+        activity_concentration_MBq_ml
+        * ss_voxel_volume_ml
+    )
+
+    activity_ss[fill] = activity_per_subvoxel_MBq
+
+    # ------------------------------------------------------------
+    # Attenuation map [cm^-1]
+    # ------------------------------------------------------------
+
+    attenuation_ss = np.zeros(
+        ss_matrix_size,
+        dtype=np.float32,
+    )
+
+    attenuation_ss[fill] = (
+        fill_attenuation_coefficient_cm
+    )
+
+    attenuation_ss[perspex] = (
+        perspex_attenuation_coefficient_cm
+    )
+
+    # ------------------------------------------------------------
+    # Downsample
+    # ------------------------------------------------------------
+
+    reshape_size = (
+        nz, ss,
+        ny, ss,
+        nx, ss,
+    )
+
+    # Activity is SUMMED to conserve total activity
+    activity_map = (
+        activity_ss
+        .reshape(reshape_size)
+        .sum(axis=(1, 3, 5))
+        .astype(np.float32)
+    )
+
+    # Attenuation coefficient is AVERAGED
+    attenuation_map = (
+        attenuation_ss
+        .reshape(reshape_size)
+        .mean(axis=(1, 3, 5))
+        .astype(np.float32)
+    )
+
+    # ------------------------------------------------------------
+    # Analysis mask at output resolution
+    #
+    # Margin is measured from the OUTSIDE of the Perspex phantom.
+    # ------------------------------------------------------------
+
+    z_out = (
+        np.arange(nz) - (nz - 1) / 2
+    ) * dz
+
+    y_out = (
+        np.arange(ny) - (ny - 1) / 2
+    ) * dy
+
+    x_out = (
+        np.arange(nx) - (nx - 1) / 2
+    ) * dx
+
+    Z_out, Y_out, X_out = np.meshgrid(
+        z_out, y_out, x_out,
+        indexing="ij",
+    )
+
+    radial_distance_out = np.sqrt(
+        X_out**2 + Y_out**2
+    )
+
+    mask = (
+        (
+            radial_distance_out
+            <= outer_radius_mm + mask_margin_mm
+        )
+        & (
+            np.abs(Z_out)
+            <= outer_half_length_mm + mask_margin_mm
+        )
+    )
+
+    return activity_map, attenuation_map, mask
+
+
+def smooth_acquisition_data(
+    acq_data: spect.AcquisitionData,
+    sigma: float = 1.0,
+) -> spect.AcquisitionData:
+    """
+    Apply Gaussian smoothing to each projection independently.
+
+    Parameters
+    ----------
+    acq_data : spect.AcquisitionData
+        Input projection data.
+
+    sigma : float
+        Gaussian standard deviation in pixels.
+
+    Returns
+    -------
+    spect.AcquisitionData
+        Smoothed projection data.
+    """
+
+    arr = acq_data.as_array()
+
+    # Expected dimensions:
+    # (tof/sinogram, views, axial, tangential)
+    #
+    # Do not smooth across views.
+    smoothed_arr = gaussian_filter(
+        arr,
+        sigma=(0, 0, sigma, sigma)
+    )
+
+    smoothed = acq_data.clone()
+    smoothed.fill(smoothed_arr)
+
+    return smoothed
+
+
+def scale_mc_scatter_binwise(
+    mc_scatter: spect.AcquisitionData,
+    measured_photopeak: spect.AcquisitionData,
+    simulated_photopeak: spect.AcquisitionData,
+    eps: float = 1e-8,
+) -> spect.AcquisitionData:
+    """
+    Scale a SIMIND MC scatter estimate bin-by-bin using the ratio between
+    measured and simulated photopeak projections.
+
+    The scaled scatter is
+
+        S_scaled = S_MC * (Y_measured / Y_simulated)
+
+    Parameters
+    ----------
+    mc_scatter : spect.AcquisitionData
+        SIMIND MC scatter estimate in the photopeak window.
+
+    measured_photopeak : spect.AcquisitionData
+        Measured photopeak acquisition data being reconstructed.
+
+    simulated_photopeak : spect.AcquisitionData
+        Total SIMIND photopeak projection generated from the current
+        activity estimate. This should contain primary + scatter.
+
+    eps : float, optional
+        Minimum denominator used to avoid division by zero.
+
+    Returns
+    -------
+    spect.AcquisitionData
+        Bin-wise scaled MC scatter estimate.
+    """
+
+    scatter = mc_scatter.as_array()
+    measured = measured_photopeak.as_array()
+    simulated = simulated_photopeak.as_array()
+
+    if not (scatter.shape == measured.shape == simulated.shape):
+        raise ValueError(
+            "mc_scatter, measured_photopeak and simulated_photopeak "
+            "must have identical shapes."
+        )
+
+    # Calculate projection-bin scaling factors.
+    scale = np.divide(
+        measured,
+        simulated,
+        out=np.zeros_like(measured, dtype=np.float32),
+        where=simulated > eps,
+    )
+
+    scaled_scatter_arr = scatter * scale
+
+    # Preserve the SIRF AcquisitionData geometry/header.
+    scaled_scatter = mc_scatter.clone()
+    scaled_scatter.fill(scaled_scatter_arr)
+
+    return scaled_scatter
