@@ -18,5 +18,4 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-SIRF-demo-2/*
 icf_calculation/*
