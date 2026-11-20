@@ -1,6 +1,7 @@
 # External/local packages
 .packages/*
 !.packages/stir_simind_utils.py
+!.packages/*.yaml
 
 # Python generated files
 __pycache__/
